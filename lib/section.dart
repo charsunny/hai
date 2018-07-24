@@ -137,14 +137,33 @@ class SectionPageItem extends StatelessWidget {
   }
 }
 
-class SectionPage extends StatelessWidget {
+class SectionPage extends StatefulWidget {
   SectionPage({
     @required this.items,
+    @required this.selIndex,
+  });
+  final int selIndex;
+  final List<PoemItem> items;
+  @override
+  SectionPageState createState() => SectionPageState(items: items, selIndex: selIndex);
+}
+
+class SectionPageState extends State<SectionPage> {
+  SectionPageState({
+    @required this.items,
+    @required this.selIndex,
   });
 
+  final int selIndex;
   final List<PoemItem> items;
   final controller = PageController(viewportFraction: 1.0);
   
+  @override
+  void initState() async {
+    super.initState();
+    controller.animateToPage(selIndex, curve: Curves.easeIn, duration: Duration());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

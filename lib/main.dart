@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:hai/poem.dart';
 import 'package:hai/section.dart';
 import 'package:hai/sectiondata.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 
@@ -45,7 +46,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   
-  int currentIndex = 0;
+  int sectionIndex = 0;
+  int poemIndex = 0;
 
   List<PoemItem> collections = [];
   List<PoemItem> poems = [];
@@ -63,8 +65,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() {
+  void initState() async {
       super.initState();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      var sidx = prefs.getInt("sectionIndex");
+      var pidx = prefs.getInt("poemIndex");
+      setState(() {
+        this.sectionIndex = sidx; 
+        this.poemIndex = pidx;
+      });
       rootBundle.loadString('assets/configs/image.json').then((val){
         var list1 =json.decode(val);
         rootBundle.loadString('assets/configs/collection.json').then((val1){
@@ -100,13 +109,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       });
   }
-
-  void switchTab(int idx) {
-    setState(() {
-      currentIndex = idx; 
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -132,8 +134,8 @@ class _MyHomePageState extends State<MyHomePage> {
         body: TabBarView (
           physics:NeverScrollableScrollPhysics(),
           children: [
-            SectionPage(items: collections),
-            PoemPage(items: poems),
+            SectionPage(items: collections, selIndex: sectionIndex,),
+            PoemPage(items: poems, selIndex: poemIndex,),
             UserPage()
           ]
         ),

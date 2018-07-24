@@ -4,6 +4,7 @@ import 'package:hai/page_transform.dart';
 import 'package:hai/sectiondata.dart';
 import 'dart:ui';
 import 'package:share/share.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PoemPageItem extends StatelessWidget {
   PoemPageItem({
@@ -13,7 +14,7 @@ class PoemPageItem extends StatelessWidget {
 
   final PoemItem item;
   final PageVisibility pageVisibility;
-
+  
   Widget _applyTextEffects({
     @required double translationFactor,
     @required Widget child,
@@ -145,16 +146,37 @@ class PoemPageItem extends StatelessWidget {
   }
 }
 
-class PoemPage extends StatelessWidget {
+class PoemPage extends StatefulWidget {
   PoemPage({
     @required this.items,
+    @required this.selIndex,
   });
-
+  final int selIndex;
   final List<PoemItem> items;
-  final controller = PageController(viewportFraction: 1.0);
-  void _incrementCounter () {
+  @override
+  PoemPageState createState() => PoemPageState(items: items, selIndex: selIndex);
+}
 
+class PoemPageState extends State<PoemPage> {
+  PoemPageState({
+    @required this.items,
+    @required this.selIndex,
+  });
+  final int selIndex;
+  final List<PoemItem> items;
+  
+  final controller = PageController(viewportFraction: 1.0);
+
+  @override
+  void initState() async {
+    super.initState();
+    controller.animateToPage(selIndex, curve: Curves.easeIn, duration: Duration());
   }
+
+  void _incrementCounter () {
+    controller.animateToPage(2, curve: Curves.easeIn, duration: Duration());
+  }
+
   void _sharePoem() {
     Share.share("xxxxx");
   }
