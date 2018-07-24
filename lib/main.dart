@@ -65,16 +65,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() async {
+  void initState() {
       super.initState();
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      var sidx = prefs.getInt("sectionIndex");
-      var pidx = prefs.getInt("poemIndex");
-      setState(() {
-        this.sectionIndex = sidx; 
-        this.poemIndex = pidx;
+      SharedPreferences.getInstance().then((prefs) {
+        var sidx = prefs.getInt("selSection");
+        var pidx = prefs.getInt("selPoem");
+        setState(() {
+          this.sectionIndex = sidx; 
+          this.poemIndex = pidx;
+        });
+        loadData();
       });
-      rootBundle.loadString('assets/configs/image.json').then((val){
+  }
+
+  void loadData() {
+    rootBundle.loadString('assets/configs/image.json').then((val){
         var list1 =json.decode(val);
         rootBundle.loadString('assets/configs/collection.json').then((val1){
           var list = json.decode(val1);
@@ -109,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       });
   }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;

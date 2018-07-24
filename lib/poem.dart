@@ -4,6 +4,7 @@ import 'package:hai/page_transform.dart';
 import 'package:hai/sectiondata.dart';
 import 'dart:ui';
 import 'package:share/share.dart';
+import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PoemPageItem extends StatelessWidget {
@@ -44,10 +45,10 @@ class PoemPageItem extends StatelessWidget {
         child : Text(
           item.content.trim(),
           style: textTheme.caption.copyWith(
-            color: Colors.white70,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             letterSpacing: 2.0,
-            fontSize: 15.0,
+            fontSize: 17.0,
             height: 1.4
           ),
           overflow: TextOverflow.fade,
@@ -65,13 +66,13 @@ class PoemPageItem extends StatelessWidget {
           style: textTheme.title.copyWith(
             color: Colors.white, 
             fontWeight: FontWeight.bold,
-            fontSize: 18.0
+            fontSize: 20.0,
+            fontFamily: 'yuesong'
           ),
           textAlign: TextAlign.center,
         ),
       ),
     );
-    var height =  MediaQuery.of(context).size.height;
 
     return Positioned(
       top: 32.0,
@@ -153,28 +154,32 @@ class PoemPage extends StatefulWidget {
   });
   final int selIndex;
   final List<PoemItem> items;
+  
   @override
   PoemPageState createState() => PoemPageState(items: items, selIndex: selIndex);
 }
 
-class PoemPageState extends State<PoemPage> {
+class PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, AutomaticKeepAliveClientMixin<PoemPage> {
   PoemPageState({
     @required this.items,
     @required this.selIndex,
   });
-  final int selIndex;
+  int selIndex;
   final List<PoemItem> items;
   
   final controller = PageController(viewportFraction: 1.0);
 
   @override
-  void initState() async {
-    super.initState();
-    controller.animateToPage(selIndex, curve: Curves.easeIn, duration: Duration());
+  bool get wantKeepAlive => true;
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // Calling the same function "after layout" to resolve the issue.
+    controller.jumpToPage(selIndex);
   }
 
   void _incrementCounter () {
-    controller.animateToPage(2, curve: Curves.easeIn, duration: Duration());
+    //controller.jumpToPage(selIndex);
   }
 
   void _sharePoem() {
@@ -186,6 +191,14 @@ class PoemPageState extends State<PoemPage> {
       body: PageTransformer(
         pageViewBuilder: (context, visibilityResolver) {
           return PageView.builder(
+            onPageChanged: (page) {
+              SharedPreferences.getInstance().then((pref) {
+                  pref.setInt("selPoem", selIndex);
+              });
+              setState(() {
+                selIndex = page;                
+              });
+            },
             scrollDirection: Axis.horizontal,
             controller: controller,
             itemCount: items.length,

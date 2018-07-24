@@ -10,6 +10,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   share: ^0.5.2
   shared_preferences: ^0.4.2
+  after_layout: ^1.0.4
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +51,10 @@ flutter:
     - family: shusong
       fonts:
         - asset: assets/fonts/songti.ttf
+          style: normal
+    - family: yuesong
+      fonts:
+        - asset: assets/fonts/yuesong.ttf
           style: normal
   #   - family: Trajan Pro
   #     fonts:

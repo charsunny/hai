@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hai/page_transform.dart';
 import 'package:hai/sectiondata.dart';
 import 'dart:ui';
+import 'package:after_layout/after_layout.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SectionPageItem extends StatelessWidget {
   SectionPageItem({
@@ -148,21 +150,25 @@ class SectionPage extends StatefulWidget {
   SectionPageState createState() => SectionPageState(items: items, selIndex: selIndex);
 }
 
-class SectionPageState extends State<SectionPage> {
+class SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionPage>, AutomaticKeepAliveClientMixin<SectionPage>  {
   SectionPageState({
     @required this.items,
     @required this.selIndex,
   });
 
-  final int selIndex;
+  int selIndex;
   final List<PoemItem> items;
   final controller = PageController(viewportFraction: 1.0);
-  
+
   @override
-  void initState() async {
-    super.initState();
-    controller.animateToPage(selIndex, curve: Curves.easeIn, duration: Duration());
+  bool get wantKeepAlive => true;
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // Calling the same function "after layout" to resolve the issue.
+    controller.jumpToPage(selIndex);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +176,14 @@ class SectionPageState extends State<SectionPage> {
       body: PageTransformer(
         pageViewBuilder: (context, visibilityResolver) {
           return PageView.builder(
+            onPageChanged: (page) {
+              SharedPreferences.getInstance().then((pref) {
+                  pref.setInt("selSection", selIndex);
+              });
+              setState(() {
+                selIndex = page;                
+              });
+            },
             scrollDirection: Axis.vertical,
             controller: controller,
             itemCount: items.length,
