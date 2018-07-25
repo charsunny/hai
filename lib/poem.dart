@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hai/page_transform.dart';
-import 'package:hai/sectiondata.dart';
-import 'dart:ui';
-import 'package:share/share.dart';
+import 'page_transform.dart';
+import 'poemitem.dart';
+import 'dart:ui' show ImageFilter;
+import 'dart:convert';
 import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'main.dart';
 
 class PoemPageItem extends StatelessWidget {
   PoemPageItem({
@@ -41,7 +42,7 @@ class PoemPageItem extends StatelessWidget {
     var categoryText = _applyTextEffects(
       translationFactor: 300.0,
       child: Padding (
-        padding: const EdgeInsets.fromLTRB(80.0, 0.0, 80.0, 20.0),
+        padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 60.0),
         child : Text(
           item.content.trim(),
           style: textTheme.caption.copyWith(
@@ -67,7 +68,8 @@ class PoemPageItem extends StatelessWidget {
             color: Colors.white, 
             fontWeight: FontWeight.bold,
             fontSize: 20.0,
-            fontFamily: 'yuesong'
+            fontFamily: 'yuesong',
+            letterSpacing: 5.0,
           ),
           textAlign: TextAlign.center,
         ),
@@ -149,24 +151,25 @@ class PoemPageItem extends StatelessWidget {
 
 class PoemPage extends StatefulWidget {
   PoemPage({
+    Key key,
     @required this.items,
     @required this.selIndex,
-  });
+  }):super(key: key);
   final int selIndex;
   final List<PoemItem> items;
   
   @override
-  PoemPageState createState() => PoemPageState(items: items, selIndex: selIndex);
+  _PoemPageState createState() => _PoemPageState(items: items, selIndex: selIndex);
 }
 
-class PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, AutomaticKeepAliveClientMixin<PoemPage> {
-  PoemPageState({
+class _PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, AutomaticKeepAliveClientMixin<PoemPage> {
+  _PoemPageState({
     @required this.items,
     @required this.selIndex,
   });
   int selIndex;
   final List<PoemItem> items;
-  
+  var isFav = false;
   final controller = PageController(viewportFraction: 1.0);
 
   @override
@@ -176,15 +179,23 @@ class PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, Aut
   void afterFirstLayout(BuildContext context) {
     // Calling the same function "after layout" to resolve the issue.
     controller.jumpToPage(selIndex);
+    List<PoemItem> favPoems = appStateKey.currentState == null ? [] : appStateKey.currentState.favPoems;
+    PoemItem item = items[selIndex];
+    bool fav = false;
+    favPoems.forEach((f) {
+      if (f.id == item.id) {
+        fav = true;
+      }
+    });
+    setState(() {
+        isFav = fav;  
+    });
   }
 
-  void _incrementCounter () {
-    //controller.jumpToPage(selIndex);
-  }
-
-  void _sharePoem() {
-    Share.share("xxxxx");
-  }
+  // void _sharePoem() {
+  //   PoemItem item = items[selIndex];
+  //   Share.share(item.title + "\n" + item.content);
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,11 +203,20 @@ class PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, Aut
         pageViewBuilder: (context, visibilityResolver) {
           return PageView.builder(
             onPageChanged: (page) {
+              List<PoemItem> favPoems =  appStateKey.currentState.favPoems;
               SharedPreferences.getInstance().then((pref) {
-                  pref.setInt("selPoem", selIndex);
+                  pref.setInt("selPoem", page);
+              });
+              PoemItem item = items[page];
+              bool fav = false;
+              favPoems.forEach((f) {
+                if (f.id == item.id) {
+                  fav = true;
+                }
               });
               setState(() {
-                selIndex = page;                
+                selIndex = page;  
+                isFav = fav;  
               });
             },
             scrollDirection: Axis.horizontal,
@@ -214,27 +234,35 @@ class PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, Aut
           );
         },
       ),
-      floatingActionButton: Column(
-        verticalDirection: VerticalDirection.up,
-        children: <Widget>[
-          SizedBox(height: 40.0,width: 10.0,),
-          FloatingActionButton(
-            backgroundColor: Colors.blueGrey,
-            foregroundColor: Colors.white,
-            mini: true,
-            onPressed: _sharePoem,
-            child: new Icon(Icons.share),
-          ),
-          SizedBox(height: 20.0,width: 10.0,),
-          FloatingActionButton(
-            backgroundColor: Colors.blueGrey,
-            foregroundColor: Colors.white,
-            mini: true,
-            onPressed: _incrementCounter,
-            child: new Icon(Icons.favorite),
-          ),
-        ],
-      ) ,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: isFav ? Colors.white : Colors.pink,
+        foregroundColor: Colors.white,
+        mini: true,
+        onPressed: () {
+          List<PoemItem> favPoems =  appStateKey.currentState.favPoems;
+          PoemItem item = items[selIndex];
+          bool fav = false;
+          favPoems.forEach((f) {
+            if (f.id == item.id) {
+              fav = true;
+            }
+          });
+          fav ? favPoems.remove(item) : favPoems.add(item);
+          setState(() {
+              isFav = !fav;  
+          });
+          appStateKey.currentState.changePoems(favPoems);
+          SharedPreferences.getInstance().then((prefs) {
+            List<String> list = favPoems.map((f) => json.encode(f)).toList();
+            prefs.setStringList("favp",  list);
+          });
+        },
+        child: new Icon(
+          Icons.favorite,
+          size: 28.0,
+          color: isFav ? Colors.red : Colors.white,
+        ),
+      ),
     );
   }
 }

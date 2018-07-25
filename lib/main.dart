@@ -1,58 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:hai/user.dart';
+import 'user.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'dart:io';
-import 'package:hai/poem.dart';
-import 'package:hai/section.dart';
-import 'package:hai/sectiondata.dart';
+import 'poem.dart';
+import 'section.dart';
+import 'poemitem.dart';
+import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 
-class MyApp extends StatelessWidget {
+final GlobalKey<MyHomePageState> appStateKey = new GlobalKey<MyHomePageState>();
+
+class MyApp extends StatefulWidget {
   // This widget is the root of your application.
 
   @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
       theme: new ThemeData(
         fontFamily: 'shusong',
         primarySwatch: Colors.pink,
       ),
-      home: new MyHomePage(title: '首页')
+      home: new MyHomePage(key: appStateKey,)
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  MyHomePage({Key key}) :super(key: key);
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  MyHomePageState createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> with AfterLayoutMixin<MyHomePage> {
   
   int sectionIndex = 0;
   int poemIndex = 0;
 
   List<PoemItem> collections = [];
   List<PoemItem> poems = [];
+  List<PoemItem> favPoems = [];
+  List<PoemItem> favSections = [];
 
-  bool isLoading = true;
+  bool _isLoading = true;
 
   bool _isIPhoneX(MediaQueryData mediaQuery) {
     if (Platform.isIOS) {
@@ -64,18 +65,46 @@ class _MyHomePageState extends State<MyHomePage> {
     return false;
   }
 
+  changeSections( List<PoemItem> sections) {
+    setState(() {
+        this.favSections = sections;  
+    });
+  }
+
+  changePoems( List<PoemItem> poems) {
+    setState(() {
+        this.favPoems = poems;  
+    });
+  }
+
   @override
   void initState() {
       super.initState();
-      SharedPreferences.getInstance().then((prefs) {
-        var sidx = prefs.getInt("selSection");
-        var pidx = prefs.getInt("selPoem");
-        setState(() {
-          this.sectionIndex = sidx; 
-          this.poemIndex = pidx;
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    if (_isLoading) {
+        SharedPreferences.getInstance().then((prefs) {
+          var sidx = prefs.getInt("selSection");
+          var pidx = prefs.getInt("selPoem");
+          var favp = prefs.getStringList("favp");
+          var favs = prefs.getStringList("favs");
+          if (favp != null) {
+            favPoems = favp.map((f) => PoemItem.fromString(f)).toList();
+          }
+          if (favs != null) {
+            favSections = favs.map((f) => PoemItem.fromString(f)).toList();
+          }
+          setState(() {
+            this.sectionIndex = sidx; 
+            this.poemIndex = pidx;
+            this.favPoems = favPoems;
+            this.favSections = favSections;
+          });
+          loadData();
         });
-        loadData();
-      });
+      }
   }
 
   void loadData() {
@@ -91,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return item;
           }).toList();
           setState(() {
-            isLoading = false;
+            _isLoading = false;
             collections = list2;
           });
         });
@@ -117,49 +146,63 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
-    if (isLoading) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(children: <Widget>[
-          Image.asset("assets/splash.png", width: size.width, height: size.height),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 240.0),
-              child: CircularProgressIndicator(
-                strokeWidth: 3.0,
-              ),
-            ) 
-          )
-      ],));
-    }
-    var paddingBottom = _isIPhoneX(MediaQuery.of(context)) ? 40.0 : 0.0;
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold (
-        body: TabBarView (
-          physics:NeverScrollableScrollPhysics(),
-          children: [
-            SectionPage(items: collections, selIndex: sectionIndex,),
-            PoemPage(items: poems, selIndex: poemIndex,),
-            UserPage()
-          ]
+    if (_isLoading) {
+      return new MaterialApp(
+        theme: new ThemeData(
+          fontFamily: 'shusong',
+          primarySwatch: Colors.pink,
         ),
-        bottomNavigationBar: new Container(
-          color: Colors.black,
-          constraints: BoxConstraints(minHeight: 40.0),
-          padding: EdgeInsets.only(bottom: paddingBottom),
-          child: new Material(
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(children: <Widget>[
+            Container(
+              child: Image.asset("assets/splash.png"),
+            ),
+            Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: 240.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 3.0,
+                ),
+              ) 
+            )
+        ],)
+        )
+      );
+    }
+    var paddingBottom = _isIPhoneX(MediaQuery.of(context)) ? 40.0 : 0;
+    return new MaterialApp(
+      theme: new ThemeData(
+        fontFamily: 'shusong',
+        primarySwatch: Colors.pink,
+      ),
+      home: DefaultTabController(
+        length: 3,
+        child: Scaffold (
+          body: TabBarView (
+            physics:NeverScrollableScrollPhysics(),
+            children: [
+              SectionPage(items: collections, selIndex: sectionIndex,),
+              PoemPage(items: poems, selIndex: poemIndex,),
+              UserPage(favPoems:favPoems, favSections: favSections),
+            ]
+          ),
+          bottomNavigationBar: new Container(
             color: Colors.black,
-            child: new TabBar(
-              tabs: [
-                Tab(text: '字句'),
-                Tab(text: '诗词'),
-                Tab(text: '收藏')
-              ],
+            constraints: BoxConstraints(minHeight: 40.0),
+            padding: EdgeInsets.only(bottom: paddingBottom),
+            child: new Material(
+              color: Colors.black,
+              child: new TabBar(
+                tabs: [
+                  Tab(text: '字句'),
+                  Tab(text: '诗词'),
+                  Tab(text: '收藏')
+                ],
+              ),
             ),
           ),
-        ),
-    ));
+      ))
+    );
   }
 }

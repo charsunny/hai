@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hai/page_transform.dart';
-import 'package:hai/sectiondata.dart';
-import 'dart:ui';
+import 'page_transform.dart';
+import 'poemitem.dart';
+import 'dart:ui' show ImageFilter;
+import 'dart:convert';
+import 'main.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class SectionPageItem extends StatelessWidget {
   SectionPageItem({
@@ -39,7 +42,7 @@ class SectionPageItem extends StatelessWidget {
     var categoryText = _applyTextEffects(
       translationFactor: 300.0,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(60.0, 30.0, 60.0, 20.0),
+        padding: const EdgeInsets.fromLTRB(20.0, 30.0, 20.0, 20.0),
         child: Text(
           item.content,
           style: textTheme.caption.copyWith(
@@ -141,22 +144,24 @@ class SectionPageItem extends StatelessWidget {
 
 class SectionPage extends StatefulWidget {
   SectionPage({
+    Key key,
     @required this.items,
     @required this.selIndex,
-  });
+  }):super(key: key);
   final int selIndex;
   final List<PoemItem> items;
   @override
-  SectionPageState createState() => SectionPageState(items: items, selIndex: selIndex);
+  _SectionPageState createState() => _SectionPageState(items: items, selIndex: selIndex);
 }
 
-class SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionPage>, AutomaticKeepAliveClientMixin<SectionPage>  {
-  SectionPageState({
+class _SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionPage>, AutomaticKeepAliveClientMixin<SectionPage>  {
+  _SectionPageState({
     @required this.items,
     @required this.selIndex,
   });
 
   int selIndex;
+  var isFav = false;
   final List<PoemItem> items;
   final controller = PageController(viewportFraction: 1.0);
 
@@ -167,8 +172,18 @@ class SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionP
   void afterFirstLayout(BuildContext context) {
     // Calling the same function "after layout" to resolve the issue.
     controller.jumpToPage(selIndex);
+    List<PoemItem>  sections =  appStateKey.currentState.favSections;
+    PoemItem item = items[selIndex];
+    bool fav = false;
+    sections.forEach((f) {
+      if (f.id == item.id) {
+        fav = true;
+      }
+    });
+    setState(() {
+        isFav = fav;  
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -177,12 +192,23 @@ class SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionP
         pageViewBuilder: (context, visibilityResolver) {
           return PageView.builder(
             onPageChanged: (page) {
+              List<PoemItem> sections =  appStateKey.currentState.favSections;
               SharedPreferences.getInstance().then((pref) {
-                  pref.setInt("selSection", selIndex);
+                  pref.setInt("selSection", page);
               });
-              setState(() {
-                selIndex = page;                
+              PoemItem item = items[page];
+              bool fav = false;
+              print(sections);
+              sections.forEach((f) {
+                if (f.id == item.id) {
+                  fav = true;
+                }
               });
+              setState(() {  
+                selIndex = page;  
+                isFav = fav;  
+              });
+              //appStateKey.currentState.setSectionPage(page);
             },
             scrollDirection: Axis.vertical,
             controller: controller,
@@ -199,30 +225,37 @@ class SectionPageState extends State<SectionPage> with AfterLayoutMixin<SectionP
           );
         },
       ),
-      floatingActionButton: Column(
-        verticalDirection: VerticalDirection.up,
-        children: <Widget>[
-          SizedBox(height: 40.0,width: 10.0,),
-          FloatingActionButton(
-            backgroundColor: Colors.blueGrey,
-            foregroundColor: Colors.white,
-            mini: true,
-            onPressed: () {
-            },
-            child: new Icon(Icons.share),
-          ),
-          SizedBox(height: 20.0,width: 10.0,),
-          FloatingActionButton(
-            backgroundColor: Colors.blueGrey,
-            foregroundColor: Colors.white,
-            mini: true,
-            onPressed: () {
-
-            },
-            child: new Icon(Icons.favorite),
-          ),
-        ]
-      )
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: isFav ? Colors.white : Colors.pink,
+        foregroundColor: Colors.white,
+        mini: true,
+        onPressed: () {
+          List<PoemItem> sections =  appStateKey.currentState.favSections;
+          PoemItem item = items[selIndex];
+          bool fav = false;
+          sections.forEach((f) {
+            if (f.id == item.id) {
+              fav = true;
+            }
+          });
+          fav ? sections.remove(item) : sections.add(item);
+          setState(() {
+              isFav = !fav;  
+          });
+          appStateKey.currentState.changeSections(sections); 
+          SharedPreferences.getInstance().then((prefs) {
+            List<String> list = sections.map((f) => json.encode(f)).toList();
+            prefs.setStringList("favs",  list).then((succ) {
+              
+            });
+          });
+        },
+        child: new Icon(
+          Icons.favorite,
+          size: 28.0,
+          color: isFav ? Colors.red : Colors.white,
+        ),
+      ),
     );
   }
 }
