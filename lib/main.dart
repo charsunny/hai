@@ -170,7 +170,7 @@ class MyHomePageState extends State<MyHomePage> with AfterLayoutMixin<MyHomePage
         )
       );
     }
-    var paddingBottom = _isIPhoneX(MediaQuery.of(context)) ? 40.0 : 0;
+    var paddingBottom = _isIPhoneX(MediaQuery.of(context)) ? 40.0 : 0.0;
     return new MaterialApp(
       theme: new ThemeData(
         fontFamily: 'shusong',
