@@ -2,6 +2,8 @@
 #include "GeneratedPluginRegistrant.h"
 
 @implementation AppDelegate
+    
+const NSString* WXAPPID = @"wx8d80d52485f4cb05";
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {

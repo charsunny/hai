@@ -1,5 +1,22 @@
 import 'dart:convert';
 
+class PoemData {
+  static final PoemData _singleton = new PoemData._internal();
+
+  factory PoemData() {
+    return _singleton;
+  }
+
+  PoemData._internal();
+
+  List<PoemItem> collections = [];
+  List<PoemItem> poems = [];
+  List<PoemItem> favPoems = [];
+  List<PoemItem> favSections = [];
+  int sectionIndex = 0;
+  int poemIndex = 0;
+}
+
 class PoemItem {
 
   PoemItem({

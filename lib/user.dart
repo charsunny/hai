@@ -1,142 +1,316 @@
 import 'package:flutter/material.dart';
 import 'poem.dart';
 import 'section.dart';
-import 'poemitem.dart';
 import 'package:share/share.dart';
+import 'package:launch_review/launch_review.dart';
 
 
 class UserPage extends StatelessWidget {
 
   UserPage({
     Key key,
-    @required this.favSections,
-    @required this.favPoems,
   }):super(key: key);
 
-  final List<PoemItem> favPoems;
-  final List<PoemItem> favSections;
 
   @override
   Widget build(BuildContext context) {
-    Widget sp =  Container(
-      color: Colors.black87,
-      child: Center(
-        child: Text(
-          '暂无收藏',
-          style: TextStyle(
-            fontSize: 18.0,
-            color: Colors.white70,
-        )),
-      ),
-    );
-    if (favSections.length > 0) {
-      sp = SectionPage(items: favSections, selIndex: 0,);
-    }
-    Widget pp =  Container(
-      color: Colors.black87,
-      child: Center(
-        child: Text(
-          '暂无收藏',
-          style: TextStyle(
-            fontSize: 18.0,
-            color: Colors.white70,
-          ),
-        ),
-      ),
-    );
-    if (favPoems.length > 0) {
-      pp = PoemPage(items: favPoems, selIndex: 0,);
-    }
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold (
+    return Scaffold (
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          title: TabBar(
-              tabs: [
-                Tab(text: '字句 ( ${favSections.length} )'),
-                Tab(text: '诗词 ( ${favPoems.length} )'),
-              ],
-          ), 
-          actions: <Widget>[
-            IconButton(icon: Icon(Icons.share), color: Colors.white, onPressed: () {
-              Share.share("海子的诗，app下载地址：https://charsunny.com/haizi");
-            },)
+          elevation: 2.0,
+          backgroundColor: Colors.white,
+          title: Text('我的', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(60.0),
+            child: ListTile(
+              leading: CircleAvatar(
+                minRadius: 24.0,
+                maxRadius: 26.0,
+                foregroundColor: Colors.pink,
+                backgroundColor: Colors.black12,
+                backgroundImage: ExactAssetImage("assets/images/haizi.jpg",),
+              ),
+              title: Text('海子的诗', style: TextStyle(fontSize: 20.0, color: Colors.black                  , fontWeight: FontWeight.bold),),
+              subtitle: Text('天空一无所有 为何给我安慰', style: TextStyle(fontSize: 13.0, color: Colors.black54),),
+              trailing: Icon(Icons.chevron_right),
+            ),
+            
+          ),
+          // actions: <Widget>[
+          //   IconButton(icon: Icon(Icons.settings), onPressed: () {
+          //     Share.share("海子的诗，app下载地址：https://charsunny.com/haizi");
+          //   },)
+          // ],
+        ),
+        body: ListView (
+          children: <Widget>[
+            Padding(padding: EdgeInsets.all(8.0),),
+            // ListTile(
+            //   leading: Icon(Icons.message),
+            //   title: Text('我的消息', style: TextStyle(fontSize: 15.0),),
+            //   trailing: Icon(Icons.chevron_right),
+            // ),
+            // Divider(color: Colors.black12, height: 1.0,),
+            ListTile(
+              leading: Icon(Icons.book),
+              enabled: true,
+              title: Text('收藏诗歌', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(builder: (context) {
+                    return PoemPage(fav: true,);
+                  }) 
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bookmark),
+              enabled: true,
+              title: Text('收藏字句', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(builder: (context) {
+                    return SectionPage(fav: true,);
+                  }) 
+                );
+              },
+            ),
+            Divider(color: Colors.black12, height: 1.0,),
+            ListTile(
+              leading: Icon(Icons.feedback),
+              enabled: true,
+              title: Text('意见反馈', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+            ),
+            ListTile(
+              leading: Icon(Icons.contact_mail),
+              enabled: true,
+              title: Text('联系作者', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context, rootNavigator: false).push(
+                  MaterialPageRoute(builder: (context) {
+                    return Scaffold(
+                      appBar: AppBar(
+                        elevation: 2.0,
+                        backgroundColor: Colors.white,
+                        title: Text('联系作者', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+                      ),
+                      body: Center(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            width: 80.0,
+                            height: 80.0,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: ExactAssetImage("assets/images/icon.jpg",), 
+                                fit: BoxFit.cover
+                              ),
+                              borderRadius: BorderRadius.all(Radius.circular(40.0)),
+                              border: new Border.all(
+                                color: Colors.white,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          Padding(padding: EdgeInsets.all(8.0)),
+                          Text("微博: @charsunny"),
+                          Padding(padding: EdgeInsets.all(4.0)),
+                          Text("微信: @charsunny"),
+                          Padding(padding: EdgeInsets.all(4.0)),
+                          Text("邮箱: charsunny@gmail.com"),
+                          Padding(padding: EdgeInsets.all(100.0)),
+                        ],
+                      )),
+                    );
+                  }) 
+                );
+              },
+            ),
+             ListTile(
+              leading: Icon(Icons.credit_card),
+              enabled: true,
+              title: Text('Buy Water', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context, rootNavigator: false).push(
+                  MaterialPageRoute(builder: (context) {
+                    return DefaultTabController(
+                      length: 2,
+                      child:Scaffold(
+                        appBar: AppBar(
+                          elevation: 2.0,
+                          backgroundColor: Colors.white,
+                          title: Text('Buy Water', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+                          bottom: TabBar(
+                            tabs: <Widget>[
+                              Tab(text: '微信'),
+                              Tab(text: '支付宝'),
+                            ],
+                          ),
+                        ),
+                        body: TabBarView(
+                          children: <Widget>[
+                            Center(
+                              
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
+                                child: Image.asset('assets/images/wepay.png'),
+                              ) 
+                            ),
+                            Center(
+                              
+                              child: Padding(
+                                padding:EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
+                                child: Image.asset('assets/images/alipay.png'),
+                              ) 
+                            )
+                          ],
+                        )
+                    ));
+                  }) 
+                );
+              },
+            ),
+            Divider(color: Colors.black12, height: 1.0,),
+            ListTile(
+              leading: Icon(Icons.live_help),
+              enabled: true,
+              title: Text('关于应用', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context, rootNavigator: false).push(
+                  MaterialPageRoute(builder: (context) {
+                    return Scaffold(
+                      appBar: AppBar(
+                        elevation: 2.0,
+                        backgroundColor: Colors.white,
+                        title: Text('关于应用', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+                      ),
+                      body: Center(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            width: 80.0,
+                            height: 80.0,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: ExactAssetImage("assets/images/haizi.jpg",), 
+                                fit: BoxFit.cover
+                              ),
+                              borderRadius: BorderRadius.all(Radius.circular(40.0)),
+                              border: new Border.all(
+                                color: Colors.white,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          Padding(padding: EdgeInsets.all(8.0)),
+                          Text("陌生人\n感谢你和我一样\n面朝大海\n春暖花开 \n\n新朋友\n祝愿你和我一样\n享受诗歌\n热爱生活", style: TextStyle(fontSize: 17.0, color: Colors.black),),
+                          Padding(padding: EdgeInsets.all(8.0)),
+                          Text("—— 使用Flutter学习编写", style: TextStyle(fontSize: 13.0, color: Colors.black87),),
+                          Padding(padding: EdgeInsets.all(100.0)),
+                        ],
+                      )),
+                    );
+                  }) 
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.notifications),
+              enabled: true,
+              title: Text('应用评分', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                LaunchReview.launch(
+                  androidAppId: "com.charsunny.haizi",
+                  iOSAppId: "1340405483"
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.share),
+              enabled: true,
+              title: Text('分享应用', style: TextStyle(fontSize: 15.0),),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Share.share("海子的诗，app下载地址：https://charsunny.com/haizi");
+              },
+            ),
           ],
-          backgroundColor: Colors.black87,
-          ),
-        body: TabBarView (
-          physics:NeverScrollableScrollPhysics(),
-          children: [
-            sp,
-            pp
-          ]
         ),
-        drawer: Drawer(
-          child:  Column(
-            children: <Widget>[
-              DrawerHeader(
-                child: Center(
-                  child: Column(
-                    children: <Widget>[
-                      Container(
-                        width: 80.0,
-                        height: 80.0,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: ExactAssetImage("assets/images/haizi.jpg",), 
-                            fit: BoxFit.cover
-                          ),
-                          borderRadius: BorderRadius.all(Radius.circular(40.0)),
-                          border: new Border.all(
-                            color: Colors.pink,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      Padding(padding: EdgeInsets.all(5.0),),
-                      Text(
-                        "海子的诗",
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: Colors.white,
-                          fontFamily: "yuesong"
-                        ),
-                      ),
-                      Padding(padding: EdgeInsets.all(5.0),),
-                      Text(
-                        "天空一无所有 为何给我安慰",
-                        style: TextStyle(
-                          fontSize: 13.0,
-                          color: Colors.white70
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.pink,
-                ),
-              ),
-              Expanded(
-                child:  Container(
-                padding: EdgeInsets.all(20.0),
-                child: Text(
-                    '陌生人\n感谢你和我一样\n面朝大海\n春暖花开 \n\n新朋友\n祝愿你和我一样\n享受诗歌\n热爱生活',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      height: 1.3,
-                    ),
-                  ),
-                ), 
-                flex: 1,
-              ),
-              Container(
-                padding: EdgeInsets.all(20.0),
-                child:  Text('使用flutter业余时间编写，如有问题和需求，请联系@charsunny')
-              )
-            ],
-          ),
-        ),
-    ));
+        // drawer: Drawer(
+        //   child:  Column(
+        //     children: <Widget>[
+        //       DrawerHeader(
+        //         child: Center(
+        //           child: Column(
+        //             children: <Widget>[
+        //               Container(
+        //                 width: 80.0,
+        //                 height: 80.0,
+        //                 decoration: BoxDecoration(
+        //                   image: DecorationImage(
+        //                     image: ExactAssetImage("assets/images/haizi.jpg",), 
+        //                     fit: BoxFit.cover
+        //                   ),
+        //                   borderRadius: BorderRadius.all(Radius.circular(40.0)),
+        //                   border: new Border.all(
+        //                     color: Colors.pink,
+        //                     width: 2.0,
+        //                   ),
+        //                 ),
+        //               ),
+        //               Padding(padding: EdgeInsets.all(5.0),),
+        //               Text(
+        //                 "海子的诗",
+        //                 style: TextStyle(
+        //                   fontSize: 14.0,
+        //                   color: Colors.white,
+        //                   fontFamily: "yuesong"
+        //                 ),
+        //               ),
+        //               Padding(padding: EdgeInsets.all(5.0),),
+        //               Text(
+        //                 "天空一无所有 为何给我安慰",
+        //                 style: TextStyle(
+        //                   fontSize: 13.0,
+        //                   color: Colors.white70
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //         decoration: BoxDecoration(
+        //           color: Colors.pink,
+        //         ),
+        //       ),
+        //       Expanded(
+        //         child:  Container(
+        //         padding: EdgeInsets.all(20.0),
+        //         child: Text(
+        //             '陌生人\n感谢你和我一样\n面朝大海\n春暖花开 \n\n新朋友\n祝愿你和我一样\n享受诗歌\n热爱生活',
+        //             style: TextStyle(
+        //               fontSize: 16.0,
+        //               height: 1.3,
+        //             ),
+        //           ),
+        //         ), 
+        //         flex: 1,
+        //       ),
+        //       Container(
+        //         padding: EdgeInsets.all(20.0),
+        //         child:  Text('使用flutter业余时间编写，如有问题和需求，请联系@charsunny')
+        //       )
+        //     ],
+        //   ),
+        // ),
+    );
   }
 }

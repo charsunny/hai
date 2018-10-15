@@ -1,98 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'page_transform.dart';
-import 'poemitem.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:typed_data';
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'dart:ui' show ImageFilter;
 import 'dart:convert';
-import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main.dart';
+import 'package:fluwx/fluwx.dart' as fluwx;
+import 'package:fluwx/fluwx.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_picker_saver/image_picker_saver.dart';
+import 'poemitem.dart';
 
 class PoemPageItem extends StatelessWidget {
   PoemPageItem({
     @required this.item,
-    @required this.pageVisibility,
   });
 
   final PoemItem item;
-  final PageVisibility pageVisibility;
-  
-  Widget _applyTextEffects({
-    @required double translationFactor,
-    @required Widget child,
-  }) {
-    final double yTranslation = pageVisibility.pagePosition * translationFactor;
-
-    return Opacity(
-      opacity: pageVisibility.visibleFraction,
-      child: Transform(
-        alignment: FractionalOffset.topLeft,
-        transform: Matrix4.translationValues( 
-          yTranslation,
-          0.0,
-          0.0,
-        ),
-        child: child,
-      ),
-    );
-  }
 
   _buildTextContainer(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
-    var categoryText = _applyTextEffects(
-      translationFactor: 300.0,
-      child: Padding (
-        padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 60.0),
-        child : Text(
-          item.content.trim(),
-          style: textTheme.caption.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2.0,
-            fontSize: 17.0,
-            height: 1.4
+    return SafeArea(child: 
+      SingleChildScrollView (
+        child: Padding (
+          padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
+          child : Text(
+            item.content.trim(),
+            style: textTheme.caption.copyWith(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+              fontSize: 18.0,
+              height: 1.4
+            ),
+            overflow: TextOverflow.fade,
+            textAlign: TextAlign.center,
           ),
-          overflow: TextOverflow.fade,
-          textAlign: TextAlign.center,
         ),
       )
-    );
-
-    var titleText = _applyTextEffects(
-      translationFactor: 200.0,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Text(
-          item.title,
-          style: textTheme.title.copyWith(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-            fontSize: 20.0,
-            fontFamily: 'yuesong',
-            letterSpacing: 5.0,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-
-    return Positioned(
-      top: 32.0,
-      left: 0.0,
-      right: 0.0,
-      bottom: 0.0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          titleText,
-          new Expanded (
-            flex: 1,
-            child: SingleChildScrollView (
-              child: categoryText,
-            )
-          ),
-        ],
-      ),
     );
   }
 
@@ -101,10 +48,6 @@ class PoemPageItem extends StatelessWidget {
     var image = Image.network(
       item.imageUrl,
       fit: BoxFit.cover,
-      alignment: FractionalOffset(
-        0.5 + (pageVisibility.pagePosition / 3),
-        0.5 ,
-      ),
     );
 
     var imageOverlayGradient = DecoratedBox(
@@ -113,8 +56,8 @@ class PoemPageItem extends StatelessWidget {
           begin: FractionalOffset.bottomCenter,
           end: FractionalOffset.topCenter,
           colors: [
-            const Color(0xFF000000),
-            const Color(0x33000000),
+            const Color(0x33FFFFFF),
+            const Color(0xFFFFFFFF),
           ],
         ),
       ),
@@ -123,28 +66,18 @@ class PoemPageItem extends StatelessWidget {
     var blurFilyer = BackdropFilter(
       filter: new ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
       child: new Container(
-        decoration: new BoxDecoration(color: Colors.black45.withOpacity(0.1)),
+        decoration: new BoxDecoration(color: Colors.white.withOpacity(0.2)),
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 0.0,
-        horizontal: 0.0,
-      ),
-      child: Material(
-        elevation: 4.0,
-        borderRadius: BorderRadius.circular(0.0),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            image,
-            blurFilyer,
-            imageOverlayGradient,
-            _buildTextContainer(context),
-          ],
-        ),
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        image,
+        blurFilyer,
+        imageOverlayGradient,
+        _buildTextContainer(context),
+      ],
     );
   }
 }
@@ -152,117 +85,320 @@ class PoemPageItem extends StatelessWidget {
 class PoemPage extends StatefulWidget {
   PoemPage({
     Key key,
-    @required this.items,
-    @required this.selIndex,
+    @required this.fav,
   }):super(key: key);
-  final int selIndex;
-  final List<PoemItem> items;
-  
+  final bool fav;
   @override
-  _PoemPageState createState() => _PoemPageState(items: items, selIndex: selIndex);
+  _PoemPageState createState() => _PoemPageState();
 }
 
-class _PoemPageState extends State<PoemPage> with AfterLayoutMixin<PoemPage>, AutomaticKeepAliveClientMixin<PoemPage> {
-  _PoemPageState({
-    @required this.items,
-    @required this.selIndex,
-  });
-  int selIndex;
-  final List<PoemItem> items;
+class _PoemPageState extends State<PoemPage> with SingleTickerProviderStateMixin  {
+
+  int selIndex = 0;
+  List<PoemItem> items;
+  List<PoemItem> favPoems;
+
   var isFav = false;
-  final controller = PageController(viewportFraction: 1.0);
+  PoemItem selItem;
+  TabController _tabController;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    // Calling the same function "after layout" to resolve the issue.
-    controller.jumpToPage(selIndex);
-    List<PoemItem> favPoems = appStateKey.currentState == null ? [] : appStateKey.currentState.favPoems;
-    PoemItem item = items[selIndex];
-    bool fav = false;
+  void initState() {
+    super.initState(); 
+    print('aaaa');
+    favPoems = PoemData().favPoems;
+    items = widget.fav ? favPoems : PoemData().poems;
+    _tabController = new TabController(vsync: this, length: items.length);
+    _tabController.addListener(_tabListener);
+    if (!widget.fav) {
+      selIndex = PoemData().poemIndex;
+      _tabController.index = selIndex;
+      selItem = this.items[selIndex];
+    } else {
+      selIndex = 0;
+      if(this.items.length > 0) {
+        selItem = this.items[0];
+      }
+    }
     favPoems.forEach((f) {
-      if (f.id == item.id) {
-        fav = true;
+      if (f.id == selItem.id) {
+        isFav = true;
       }
     });
     setState(() {
-        isFav = fav;  
+          
     });
   }
 
-  // void _sharePoem() {
-  //   PoemItem item = items[selIndex];
-  //   Share.share(item.title + "\n" + item.content);
-  // }
+  @override
+  void dispose() {
+    _tabController.removeListener(_tabListener);
+    _tabController.dispose();
+    super.dispose();
+  }
+  void _tabListener () {
+    var item = items[_tabController.index];
+    isFav = false;
+    favPoems.forEach((f) {
+      if (f.id == item.id) {
+        isFav = true;
+      }
+    });
+    if (!widget.fav) {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setInt("selPoem",  _tabController.index);
+      });
+    }
+    setState(() {
+        selItem = item;
+        selIndex = _tabController.index;
+    });
+  }
+
+  GlobalKey globalKey = new GlobalKey();
+
+  // 截图boundary，并且返回图片的二进制数据。
+  Future<Uint8List> _capturePng() async {
+    RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
+    ui.Image image = await boundary.toImage();
+    // 注意：png是压缩后格式，如果需要图片的原始像素数据，请使用rawRgba
+    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List pngBytes = byteData.buffer.asUint8List();
+    //var bs64 = base64Encode(pngBytes);
+    return pngBytes;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (this.items.length == 0) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('收藏诗歌'),
+          backgroundColor: Colors.white,
+          brightness: Brightness.light,
+          elevation: 2.0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 40.0,
+                foregroundColor: Colors.pink,
+                backgroundColor: Colors.black12,
+                backgroundImage: ExactAssetImage("assets/images/haizi.jpg",),
+              ),
+              Padding(padding: EdgeInsets.all(4.0)),
+              Text('暂无收藏'),
+              Padding(padding: EdgeInsets.all(60.0))
+            ]
+          ),
+        ),
+      );
+    }
     return Scaffold(
-      body: PageTransformer(
-        pageViewBuilder: (context, visibilityResolver) {
-          return PageView.builder(
-            onPageChanged: (page) {
-              List<PoemItem> favPoems =  appStateKey.currentState.favPoems;
-              SharedPreferences.getInstance().then((pref) {
-                  pref.setInt("selPoem", page);
-              });
-              PoemItem item = items[page];
+      appBar: AppBar(
+        brightness: Brightness.light,
+        title: Text(selItem.title.trim(), style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+        backgroundColor: Colors.white,
+        elevation: 2.0,
+        titleSpacing: 0.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.pink : Colors.black,),
+            onPressed: () {
+              PoemItem item = items[selIndex];
               bool fav = false;
               favPoems.forEach((f) {
                 if (f.id == item.id) {
                   fav = true;
                 }
               });
-              setState(() {
-                selIndex = page;  
-                isFav = fav;  
+              fav ? favPoems.remove(item) : favPoems.add(item);
+              PoemData().favPoems = favPoems;
+              if (!widget.fav) {
+                setState(() {
+                  isFav = !fav;  
+                });
+              } else {
+                setState(() {
+                  isFav = true;             
+                });
+              }
+              SharedPreferences.getInstance().then((prefs) {
+                List<String> list = favPoems.map((f) => json.encode(f)).toList();
+                prefs.setStringList("favp",  list);
               });
             },
-            scrollDirection: Axis.horizontal,
-            controller: controller,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final pageVisibility =
-                  visibilityResolver.resolvePageVisibility(index);
-              return PoemPageItem(
-                item: item,
-                pageVisibility: pageVisibility,
+          ),
+          IconButton(
+            icon: Icon(Icons.comment),
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (context) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      title: Text('评论详情')
+                    ),
+                  );
+                }) 
               );
             },
-          );
-        },
+          ),
+          IconButton(
+            icon: Icon(Icons.share),
+            onPressed: () async {
+              var image = await _capturePng();
+              var tempPath = await getTemporaryDirectory();
+              await File("${tempPath.path}/temp.png").writeAsBytes(image);
+              await showModalBottomSheet(context: context, builder: (ctx) => BottomSheet(
+                onClosing: () {
+                  print('closing');
+                },
+                builder: (ctx) {
+                  return SafeArea(child:Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
+                        height: 50.0,
+                        child:Center(child: Text('选择分享方式', style: TextStyle(fontSize: 18.0),)), 
+                      ),
+                      Divider(height: 1.0),
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.all(10.0), 
+                          child:  Image.memory(
+                            image,
+                            fit: BoxFit.fitHeight,
+                          )
+                        )
+                      ),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        alignment: WrapAlignment.spaceEvenly,
+                        spacing: 16.0,
+                        children: <Widget>[
+                          Column(children: [
+                            FloatingActionButton(
+                              child: Image.asset('assets/images/wechat.png'),
+                              backgroundColor: Colors.white,
+                              elevation: 0.0,
+                              isExtended: true,
+                              onPressed: () async {
+                                print(tempPath);
+                                fluwx.share(WeChatShareImageModel(
+                                  image: 'file://${tempPath.path}/temp.png',
+                                  scene: WeChatScene.SESSION,
+                                  description: "image"
+                                ));
+                              },
+                            ),
+                            Padding(padding: EdgeInsets.all(2.0)),
+                            Text('微信好友', style: TextStyle(fontSize: 12.0),),
+                          ]),
+                          Column(children: [
+                            FloatingActionButton(
+                              child: Image.asset('assets/images/timeline.png'),
+                              backgroundColor: Colors.white,
+                              elevation: 0.0,
+                              isExtended: true,
+                              onPressed: () async {
+                                print(tempPath);
+                                fluwx.share(WeChatShareImageModel(
+                                  image: 'file://${tempPath.path}/temp.png',
+                                  scene: WeChatScene.TIMELINE,
+                                  description: "image"
+                                ));
+                              },
+                            ),
+                            Padding(padding: EdgeInsets.all(2.0)),
+                            Text('朋友圈', style: TextStyle(fontSize: 12.0),),
+                          ]),
+                          Column(children: [
+                            FloatingActionButton(
+                              child: Image.asset('assets/images/fav.png'),
+                              backgroundColor: Colors.white,
+                              elevation: 0.0,
+                              isExtended: true,
+                              onPressed: () async {
+                                print(tempPath);
+                                fluwx.share(WeChatShareImageModel(
+                                  image: 'file://${tempPath.path}/temp.png',
+                                  scene: WeChatScene.FAVORITE,
+                                  description: "image"
+                                ));
+                              },
+                            ),
+                            Padding(padding: EdgeInsets.all(2.0)),
+                            Text('微信收藏', style: TextStyle(fontSize: 12.0),),
+                          ]),
+                          Column(children: [
+                            FloatingActionButton(
+                              child: Image.asset('assets/images/link.png'),
+                              backgroundColor: Colors.white,
+                              elevation: 0.0,
+                              isExtended: true,
+                              onPressed: () async {
+                                await ImagePickerSaver.saveFile(fileData: image);
+                                Navigator.of(ctx).pop();
+                              },
+                            ),
+                            Padding(padding: EdgeInsets.all(2.0)),
+                            Text('保存图片', style: TextStyle(fontSize: 12.0),),
+                          ]),
+                      ],), 
+                      Padding(padding: EdgeInsets.only(top: 10.0), child: Divider(height: 1.0),),
+                      Container(
+                        height: 50.0,
+                        child: InkWell(
+                          child:Center(child: Text('取消')),
+                          onTap: () {
+                              Navigator.of(ctx).pop();
+                            }
+                          )
+                      )
+                      
+                    ],
+                  ));
+                },
+              )
+            );
+          }),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: isFav ? Colors.white : Colors.pink,
-        foregroundColor: Colors.white,
-        mini: true,
-        onPressed: () {
-          List<PoemItem> favPoems =  appStateKey.currentState.favPoems;
-          PoemItem item = items[selIndex];
-          bool fav = false;
-          favPoems.forEach((f) {
-            if (f.id == item.id) {
-              fav = true;
+      drawer: widget.fav ? null : Drawer(
+        semanticLabel: '诗词',
+        child: ListView.builder(
+          itemCount: items.length,
+          itemExtent: 40.0,
+          itemBuilder: (context, index) {
+             if (index < items.length) {
+              PoemItem item = items[index];
+              bool fav = false;
+              favPoems.forEach((f) {
+                if (f.id == item.id) {
+                  fav = true;
+                }
+              });
+              return ListTile(
+                title: Text('${index + 1}. ${items[index].title.trim()}', style: TextStyle(fontSize: 16.0, color: fav ? Colors.pink : (index == selIndex ? Colors.green : Colors.black)),),
+                enabled: true,
+                onTap: () {
+                  _tabController.animateTo(index);
+                  Navigator.pop(context);
+                },
+              );
             }
-          });
-          fav ? favPoems.remove(item) : favPoems.add(item);
-          setState(() {
-              isFav = !fav;  
-          });
-          appStateKey.currentState.changePoems(favPoems);
-          SharedPreferences.getInstance().then((prefs) {
-            List<String> list = favPoems.map((f) => json.encode(f)).toList();
-            prefs.setStringList("favp",  list);
-          });
-        },
-        child: new Icon(
-          Icons.favorite,
-          size: 28.0,
-          color: isFav ? Colors.red : Colors.white,
-        ),
+          },
+        ) 
       ),
+      body:  RepaintBoundary(
+        key: globalKey,
+        child: TabBarView(
+          controller: _tabController,
+          children: items.map<PoemPageItem>((item) => PoemPageItem(item: item)).toList(),
+      )),
     );
   }
 }
