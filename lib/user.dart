@@ -79,12 +79,6 @@ class UserPage extends StatelessWidget {
             ),
             Divider(color: Colors.black12, height: 1.0,),
             ListTile(
-              leading: Icon(Icons.feedback),
-              enabled: true,
-              title: Text('意见反馈', style: TextStyle(fontSize: 15.0),),
-              trailing: Icon(Icons.chevron_right),
-            ),
-            ListTile(
               leading: Icon(Icons.contact_mail),
               enabled: true,
               title: Text('联系作者', style: TextStyle(fontSize: 15.0),),
@@ -123,6 +117,8 @@ class UserPage extends StatelessWidget {
                           Text("微信: @charsunny"),
                           Padding(padding: EdgeInsets.all(4.0)),
                           Text("邮箱: charsunny@gmail.com"),
+                          Padding(padding: EdgeInsets.all(4.0)),
+                          Text("如有任何建议或意见，请联系我。"),
                           Padding(padding: EdgeInsets.all(100.0)),
                         ],
                       )),

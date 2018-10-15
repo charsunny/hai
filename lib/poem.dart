@@ -233,20 +233,6 @@ class _PoemPageState extends State<PoemPage> with SingleTickerProviderStateMixin
             },
           ),
           IconButton(
-            icon: Icon(Icons.comment),
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(builder: (context) {
-                  return Scaffold(
-                    appBar: AppBar(
-                      title: Text('评论详情')
-                    ),
-                  );
-                }) 
-              );
-            },
-          ),
-          IconButton(
             icon: Icon(Icons.share),
             onPressed: () async {
               var image = await _capturePng();
