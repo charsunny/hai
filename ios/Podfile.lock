@@ -17,7 +17,7 @@ PODS:
 
 DEPENDENCIES:
   - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
-  - Flutter (from `.symlinks/flutter/ios`)
+  - Flutter (from `.symlinks/flutter/ios-release`)
   - fluwx (from `.symlinks/plugins/fluwx/ios`)
   - image_picker_saver (from `.symlinks/plugins/image_picker_saver/ios`)
   - launch_review (from `.symlinks/plugins/launch_review/ios`)
@@ -29,7 +29,7 @@ EXTERNAL SOURCES:
   audioplayers:
     :path: ".symlinks/plugins/audioplayers/ios"
   Flutter:
-    :path: ".symlinks/flutter/ios"
+    :path: ".symlinks/flutter/ios-release"
   fluwx:
     :path: ".symlinks/plugins/fluwx/ios"
   image_picker_saver:

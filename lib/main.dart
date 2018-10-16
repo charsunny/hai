@@ -62,7 +62,7 @@ class MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMi
   @override
   void initState() {
       super.initState();
-      fluwx.register(appId: 'wx8d80d52485f4cb05');
+      fluwx.register(appId: 'wxfce8e53f4f132eee');
       _tabBarController = TabController(length: 3, vsync: this);
   }
 
