@@ -11,42 +11,66 @@ import 'package:fluwx/fluwx.dart' as fluwx;
 import 'package:fluwx/fluwx.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker_saver/image_picker_saver.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'poemitem.dart';
+import 'poemshare.dart';
 
 class PoemPageItem extends StatelessWidget {
   PoemPageItem({
     @required this.item,
+    @required this.controller,
   });
 
   final PoemItem item;
 
+  final ScrollController controller;
+
   _buildTextContainer(BuildContext context) {
-    var textTheme = Theme.of(context).textTheme;
-    return SafeArea(child: 
-      SingleChildScrollView (
-        child: Padding (
-          padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
-          child : Text(
-            item.content.trim(),
-            style: textTheme.caption.copyWith(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2.0,
-              fontSize: 18.0,
-              height: 1.4
-            ),
-            overflow: TextOverflow.fade,
-            textAlign: TextAlign.center,
-          ),
-        ),
+    String text = item.content.trim();
+    List<String> sentences = text.split("\n");
+    return SafeArea(child: Padding (
+      padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
+      child: ListView.builder(
+          controller: controller,
+          itemBuilder: (context, index) {
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+              onLongPress: () {
+                if(sentences[index].trim().length == 0) {
+                  return;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) {
+                    return PoemSharePage(item: item, selIndex: index, offset: controller.offset);
+                  })
+                );
+              },
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
+                child: Text(sentences[index],
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2.0,
+                    fontSize: 18.0,
+                  ),
+                  overflow: TextOverflow.fade,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ));
+          },
+          itemCount: sentences.length,
+        )
       )
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    var image = Image.network(
-      item.imageUrl,
+    var image = CachedNetworkImage(
+      imageUrl: item.imageUrl,
       fit: BoxFit.cover,
     );
 
@@ -102,13 +126,15 @@ class _PoemPageState extends State<PoemPage> with SingleTickerProviderStateMixin
   PoemItem selItem;
   TabController _tabController;
 
+  ScrollController controller;
+
   @override
   void initState() {
     super.initState(); 
-    print('aaaa');
     favPoems = PoemData().favPoems;
     items = widget.fav ? favPoems : PoemData().poems;
     _tabController = new TabController(vsync: this, length: items.length);
+    controller = ScrollController();
     _tabController.addListener(_tabListener);
     if (!widget.fav) {
       selIndex = PoemData().poemIndex;
@@ -177,6 +203,7 @@ class _PoemPageState extends State<PoemPage> with SingleTickerProviderStateMixin
           backgroundColor: Colors.white,
           brightness: Brightness.light,
           elevation: 2.0,
+          titleSpacing: 0.0,
         ),
         body: Center(
           child: Column(
@@ -383,7 +410,7 @@ class _PoemPageState extends State<PoemPage> with SingleTickerProviderStateMixin
         key: globalKey,
         child: TabBarView(
           controller: _tabController,
-          children: items.map<PoemPageItem>((item) => PoemPageItem(item: item)).toList(),
+          children: items.map<PoemPageItem>((item) => PoemPageItem(item: item, controller: controller,)).toList(),
       )),
     );
   }

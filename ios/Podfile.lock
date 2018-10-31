@@ -4,6 +4,8 @@ PODS:
   - Flutter (1.0.0)
   - fluwx (0.0.1):
     - Flutter
+  - image_picker (0.0.1):
+    - Flutter
   - image_picker_saver (0.0.1):
     - Flutter
   - launch_review (0.0.1):
@@ -19,6 +21,7 @@ DEPENDENCIES:
   - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
   - Flutter (from `.symlinks/flutter/ios-release`)
   - fluwx (from `.symlinks/plugins/fluwx/ios`)
+  - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - image_picker_saver (from `.symlinks/plugins/image_picker_saver/ios`)
   - launch_review (from `.symlinks/plugins/launch_review/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -32,6 +35,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/flutter/ios-release"
   fluwx:
     :path: ".symlinks/plugins/fluwx/ios"
+  image_picker:
+    :path: ".symlinks/plugins/image_picker/ios"
   image_picker_saver:
     :path: ".symlinks/plugins/image_picker_saver/ios"
   launch_review:
@@ -47,6 +52,7 @@ SPEC CHECKSUMS:
   audioplayers: def111f6a23e00d9d103563b07de5e44a727bd3c
   Flutter: 9d0fac939486c9aba2809b7982dfdbb47a7b0296
   fluwx: 9cbb1181ef8fd772f7388714ec9b5dfd3a5d0108
+  image_picker: ee00aab0487cedc80a304085219503cc6d0f2e22
   image_picker_saver: c674305b2e535d97afabfdff4e036f5da73e0167
   launch_review: 98c85a4cb86d1376b14958ebe69ddbcc753ff192
   path_provider: 09407919825bfe3c2deae39453b7a5b44f467873

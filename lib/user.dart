@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'poem.dart';
 import 'section.dart';
 import 'package:share/share.dart';
@@ -11,6 +12,56 @@ class UserPage extends StatelessWidget {
     Key key,
   }):super(key: key);
 
+  Widget _getAndroidWidget(BuildContext context) {
+    if (Platform.isIOS) {
+      return Divider();
+    }
+    return ListTile(
+      leading: Icon(Icons.credit_card),
+      enabled: true,
+      title: Text('Buy Water', style: TextStyle(fontSize: 15.0),),
+      trailing: Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.of(context, rootNavigator: false).push(
+          MaterialPageRoute(builder: (context) {
+            return DefaultTabController(
+              length: 2,
+              child:Scaffold(
+                appBar: AppBar(
+                  elevation: 2.0,
+                  backgroundColor: Colors.white,
+                  title: Text('Buy Water', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
+                  bottom: TabBar(
+                    tabs: <Widget>[
+                      Tab(text: '微信'),
+                      Tab(text: '支付宝'),
+                    ],
+                  ),
+                ),
+                body: TabBarView(
+                  children: <Widget>[
+                    Center(
+                      
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
+                        child: Image.asset('assets/images/wepay.png'),
+                      ) 
+                    ),
+                    Center(
+                      
+                      child: Padding(
+                        padding:EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
+                        child: Image.asset('assets/images/alipay.png'),
+                      ) 
+                    )
+                  ],
+                )
+            ));
+          }) 
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,52 +179,6 @@ class UserPage extends StatelessWidget {
               },
             ),
              ListTile(
-              leading: Icon(Icons.credit_card),
-              enabled: true,
-              title: Text('Buy Water', style: TextStyle(fontSize: 15.0),),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context, rootNavigator: false).push(
-                  MaterialPageRoute(builder: (context) {
-                    return DefaultTabController(
-                      length: 2,
-                      child:Scaffold(
-                        appBar: AppBar(
-                          elevation: 2.0,
-                          backgroundColor: Colors.white,
-                          title: Text('Buy Water', style: TextStyle(fontFamily: 'yuesong', fontSize: 17.0),),
-                          bottom: TabBar(
-                            tabs: <Widget>[
-                              Tab(text: '微信'),
-                              Tab(text: '支付宝'),
-                            ],
-                          ),
-                        ),
-                        body: TabBarView(
-                          children: <Widget>[
-                            Center(
-                              
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
-                                child: Image.asset('assets/images/wepay.png'),
-                              ) 
-                            ),
-                            Center(
-                              
-                              child: Padding(
-                                padding:EdgeInsets.fromLTRB(30.0, 0.0, 30.0, 100.0),
-                                child: Image.asset('assets/images/alipay.png'),
-                              ) 
-                            )
-                          ],
-                        )
-                    ));
-                  }) 
-                );
-              },
-            ),
-            Divider(color: Colors.black12, height: 1.0,),
-            ListTile(
               leading: Icon(Icons.live_help),
               enabled: true,
               title: Text('关于应用', style: TextStyle(fontSize: 15.0),),
@@ -218,6 +223,7 @@ class UserPage extends StatelessWidget {
                 );
               },
             ),
+            Divider(color: Colors.black12, height: 1.0,),
             ListTile(
               leading: Icon(Icons.notifications),
               enabled: true,
@@ -239,74 +245,9 @@ class UserPage extends StatelessWidget {
                 Share.share("海子的诗，app下载地址：https://charsunny.com/haizi");
               },
             ),
+            _getAndroidWidget(context)
           ],
         ),
-        // drawer: Drawer(
-        //   child:  Column(
-        //     children: <Widget>[
-        //       DrawerHeader(
-        //         child: Center(
-        //           child: Column(
-        //             children: <Widget>[
-        //               Container(
-        //                 width: 80.0,
-        //                 height: 80.0,
-        //                 decoration: BoxDecoration(
-        //                   image: DecorationImage(
-        //                     image: ExactAssetImage("assets/images/haizi.jpg",), 
-        //                     fit: BoxFit.cover
-        //                   ),
-        //                   borderRadius: BorderRadius.all(Radius.circular(40.0)),
-        //                   border: new Border.all(
-        //                     color: Colors.pink,
-        //                     width: 2.0,
-        //                   ),
-        //                 ),
-        //               ),
-        //               Padding(padding: EdgeInsets.all(5.0),),
-        //               Text(
-        //                 "海子的诗",
-        //                 style: TextStyle(
-        //                   fontSize: 14.0,
-        //                   color: Colors.white,
-        //                   fontFamily: "yuesong"
-        //                 ),
-        //               ),
-        //               Padding(padding: EdgeInsets.all(5.0),),
-        //               Text(
-        //                 "天空一无所有 为何给我安慰",
-        //                 style: TextStyle(
-        //                   fontSize: 13.0,
-        //                   color: Colors.white70
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //         decoration: BoxDecoration(
-        //           color: Colors.pink,
-        //         ),
-        //       ),
-        //       Expanded(
-        //         child:  Container(
-        //         padding: EdgeInsets.all(20.0),
-        //         child: Text(
-        //             '陌生人\n感谢你和我一样\n面朝大海\n春暖花开 \n\n新朋友\n祝愿你和我一样\n享受诗歌\n热爱生活',
-        //             style: TextStyle(
-        //               fontSize: 16.0,
-        //               height: 1.3,
-        //             ),
-        //           ),
-        //         ), 
-        //         flex: 1,
-        //       ),
-        //       Container(
-        //         padding: EdgeInsets.all(20.0),
-        //         child:  Text('使用flutter业余时间编写，如有问题和需求，请联系@charsunny')
-        //       )
-        //     ],
-        //   ),
-        // ),
     );
   }
 }

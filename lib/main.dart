@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'user.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/rendering.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'poem.dart';
@@ -10,7 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fluwx/fluwx.dart' as fluwx;
 
-void main() => runApp(new MyApp());
+void main() {
+  //debugPaintSizeEnabled=true;
+  runApp(new MyApp());
+} 
 
 final GlobalKey<MyHomePageState> appStateKey = new GlobalKey<MyHomePageState>();
 
